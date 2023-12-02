@@ -10,6 +10,7 @@ async function main() {
     { number: 13, color: "green" },
     { number: 14, color: "blue" },
   ];
+  const colors = ["red", "green", "blue"];
 
   const res = splitByBreak
     .map((line) => {
@@ -26,22 +27,30 @@ async function main() {
       return { gameId, colors };
     })
     .map((map) => {
-      const res = limit
-        .map((l) => {
-          const exceeds = map?.colors.filter(
-            (m) => m.color === l.color && m.number > l.number,
-          );
-          if (exceeds) return exceeds;
-          return undefined;
-        })
-        .flat();
-      if (map === undefined || map.gameId === undefined) return;
-      if (res.length === 0) return { gameId: map.gameId };
-      return;
+      const res = colors.map((cl) => {
+        return map?.colors
+          .filter((p) => p.color === cl)
+          .sort((a, b) => (a.number > b.number ? -1 : 1))[0].number;
+      });
+      return res.map((p) => Number(p)).reduce((acc, curr) => acc * curr);
+      // const res = limit
+      //   .map((l) => {
+      //     const exceeds = map?.colors.filter(
+      //       (m) => m.color === l.color && m.number > l.number,
+      //     );
+      //     if (exceeds) return exceeds;
+      //     return undefined;
+      //   })
+      //   .flat();
+      // if (map === undefined || map.gameId === undefined) return;
+      // if (res.length === 0) return { gameId: map.gameId };
+      // return;
     })
-    .filter((p) => p !== undefined && p.gameId !== undefined)
-    .map((e) => Number(e?.gameId))
+    .filter((p) => !Number.isNaN(p))
     .reduce((acc, curr) => acc + curr);
+  // .filter((p) => p !== undefined && p.gameId !== undefined)
+  // .map((e) => Number(e?.gameId))
+  // .reduce((acc, curr) => acc + curr);
 
   console.log(res);
 }
