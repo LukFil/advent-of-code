@@ -1,80 +1,47 @@
 import fs from "fs/promises";
 
 async function main() {
-  const rawData = await fs.readFile("./01_input.txt");
+  const rawData = await fs.readFile("./02_input.txt");
   const data = rawData.toString();
 
   const splitByBreak = data.split("\n");
-  const digits = [
-    "one",
-    "two",
-    "three",
-    "four",
-    "five",
-    "six",
-    "seven",
-    "eight",
-    "nine",
+  const limit = [
+    { number: 12, color: "red" },
+    { number: 13, color: "green" },
+    { number: 14, color: "blue" },
   ];
-
-  function findAllIndexes(str: string, search: string) {
-    let indexes: Array<number> = [];
-
-    let i = 0;
-    while (i < str.length) {
-      const index = str.indexOf(search, i);
-      if (index === -1) return indexes;
-
-      i = i + index + search.length;
-      indexes.push(index);
-    }
-
-    return indexes;
-  }
 
   const res = splitByBreak
     .map((line) => {
-      const wordMapping = digits
-        .map((digit, index) => {
-          const allIndexes = findAllIndexes(line, digit);
-          return allIndexes.map((i) => {
-            return { location: i, number: index + 1 };
-          });
-        })
-        .flat()
-        .filter((m) => m.location !== -1);
+      if (line.length < 1) return;
+      const splitLine = line.split(":");
+      const gameId = splitLine[0].split(" ")[1];
 
-      const numberMapping = Array.from(line)
-        .map((ch, index) => {
-          if (!Number.isNaN(Number(ch))) {
-            return { location: index, number: Number(ch) };
-          }
-        })
-        .filter((m) => m !== undefined);
+      const colors = splitLine[1].split(/[,+;]/).map((c) => {
+        const splitC = c.split(" ");
 
-      const mergedMapping = [...numberMapping, ...wordMapping].sort((a, b) => {
-        if (!a || !b) {
-          console.log("problem?");
-          return 0;
-        }
-
-        if (a?.location < b?.location) return -1;
-        return 1;
+        return { color: splitC[2], number: Number(splitC[1]) };
       });
 
-      return mergedMapping.map((e) => {
-        if (e?.number === undefined)
-          console.error("we ve got a problem houston");
-        return String(e?.number as number);
-      });
+      return { gameId, colors };
     })
-    .map((l) => {
-      if (l.length === 1) return l[0] + l[0];
-      return l[0] + l[l.length - 1];
+    .map((map) => {
+      const res = limit
+        .map((l) => {
+          const exceeds = map?.colors.filter(
+            (m) => m.color === l.color && m.number > l.number,
+          );
+          if (exceeds) return exceeds;
+          return undefined;
+        })
+        .flat();
+      if (map === undefined || map.gameId === undefined) return;
+      if (res.length === 0) return { gameId: map.gameId };
+      return;
     })
-    .filter((e) => !Number.isNaN(e))
-    .map((e) => Number(e))
-    .reduce((f, s) => f + s);
+    .filter((p) => p !== undefined && p.gameId !== undefined)
+    .map((e) => Number(e?.gameId))
+    .reduce((acc, curr) => acc + curr);
 
   console.log(res);
 }
